@@ -146,6 +146,30 @@ homicide_df %>%
 
 
 **Problem 2**
+```{r message = FALSE}
+all_file = 
+  tibble(
+  files = list.files("./data/problem2_data/"))
+
+read_csv_function = function(participant_file){
+  
+    participant_csv = str_c("./data/problem2_data/", participant_file)
+    
+    participant_data = read_csv(participant_csv)
+
+  return(participant_data)
+}
+
+read_all_file_df = 
+  all_file %>% 
+  mutate(
+    csv_results = map(files, read_csv_function)) %>% 
+  unnest(csv_results) %>% 
+  separate(files, into = c("arm", "id")) %>% 
+  mutate(
+    arm = replace(arm, arm == "exp", "experimental"),
+    arm = replace(arm, arm == "con", "control"))
+```
 
 
 
