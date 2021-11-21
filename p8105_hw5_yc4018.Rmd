@@ -151,27 +151,19 @@ homicide_df %>%
 1. Create a tidy dataframe including the subject ID, arm, and observations over time:
 
 ```{r message = FALSE, warning = FALSE}
-all_file = 
-  tibble(files = list.files("./data/problem2_data/"))
-
-read_csv_function = function(participant_file){
-  
-    participant_csv = str_c("./data/problem2_data/", participant_file)
-    
-    participant_data = read_csv(participant_csv)
-
-  return(participant_data)
-}
-
 long_study_df = 
-  all_file %>% 
+  tibble(files = list.files("./data/problem2_data/")) %>% 
   mutate(
-    csv_results = map(files, read_csv_function)) %>% 
+    path = str_c("./data/problem2_data/", files),
+    csv_results = map(.x = path, ~read_csv(.x))) %>% 
   unnest(csv_results) %>% 
   separate(files, into = c("arm", "id"), remove = F) %>% 
   mutate(
     arm = recode(arm, "con" = "control", "exp" = "experimental"),
-    files = str_replace(files, ".csv", ""))
+    files = str_replace(files, ".csv", "")) %>% 
+  select(-path)
+
+knitr::kable(long_study_df[0:7,]) 
 ```
 
 2. make the spaghetti plot showing observations on each subject over time:
@@ -228,12 +220,24 @@ na_function = function(z){
   return(z)
 }
 
-iris_without_missing = map_df(iris_with_missing, na_function)
+iris_without_missing = 
+  map(iris_with_missing, na_function) %>% 
+  as_tibble()
+```
 
-# check missing values:
-sum(is.na(iris_without_missing))
+2. check missing values:
 
-knitr::kable(iris_without_missing[0:10,], digits = 2,)
+```{r warning = FALSE}
+iris_without_missing %>%
+  select(everything()) %>% 
+  summarise_all(funs(sum(is.na(.)))) %>% 
+  knitr::kable()
+```
+
+ - After applying the `na_function()` function to the columns of `iris_with_missing` dataset, there are no missing values in the dataset anymore.
+ 
+```{r}
+knitr::kable(iris_without_missing[0:10,], digits = 2)
 ```
 
 
